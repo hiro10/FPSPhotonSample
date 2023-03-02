@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 using TMPro;
+using Photon.Realtime;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
-    //
+    // static変数
     public static PhotonManager instance;
 
     // ロードパネル格納用
@@ -19,7 +20,46 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     // ボタンの親オブジェクト
     [SerializeField] GameObject buttons;
 
-    // 
+    // ルームパネル
+    public GameObject createRoomPanel;
+
+    // ルーム名格納用
+    public TextMeshProUGUI enterRoomName;
+
+    // ルームパネル
+    public GameObject RoomPanel;
+
+    // ルームネーム
+    public TextMeshProUGUI roomName;
+
+    // エラーパネル
+    public GameObject errorPanel;
+
+    // エラーテキスト1
+    public TextMeshProUGUI errorText;
+
+    // ルーム一覧
+    public GameObject roomListPanel;
+
+    // ルームボタン
+    public Room originalRoomButton;
+
+    // ルームボタンの親
+    public GameObject roomButtonContent;
+
+    // ルーム情報を扱う辞書
+    Dictionary<string, RoomInfo> roomsList = new Dictionary<string, RoomInfo>();
+
+    // ルームボタンを使うリスト
+    private List<Room> allRomButtons = new List<Room>();
+
+    // プレイヤー名
+    public Text playerNameText;
+
+    //
+    private List<Text> allPlayerNames = new List<Text>();
+
+    public GameObject playerNameContent;
 
     /// <summary>
     /// 開始処理
@@ -59,6 +99,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         loadPanel.SetActive(false);
         buttons.SetActive(false);
+        createRoomPanel.SetActive(false);
+        RoomPanel.SetActive(false);
+        errorPanel.SetActive(false);
+        roomListPanel.SetActive(false);
     }
 
     /// <summary>
@@ -89,5 +133,229 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         LobbyMenuDisplay();
 
+        // 辞書の初期化
+        roomsList.Clear();
+
+        //仮処理
+        PhotonNetwork.NickName = Random.Range(0, 10000).ToString();
+    
+    }
+
+    /// <summary>
+    /// ルームを作るボタン絵を押した時
+    /// </summary>
+    public void OpenCreateRoomPanel()
+    {
+        CloseMenuUi();
+        createRoomPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// ルームを作成ボタン用
+    /// </summary>
+    public void CreateRoomButton()
+    {
+        // enterRoomName.textがなにも入力されていないか
+        // 入力されてない場合trueが返ってくる
+        if (!string.IsNullOrEmpty(enterRoomName.text))
+        {
+            RoomOptions options = new RoomOptions();
+            // プレイヤーの人数
+            options.MaxPlayers = 8;
+
+            // ルーム作成(第一引数ルーム名、第二引数　ルームの条件)
+            PhotonNetwork.CreateRoom(enterRoomName.text, options);
+
+            CloseMenuUi();
+
+            // ロードパネル表示
+            loadText.text = "Createing Room";
+            loadPanel.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// ルーム参加時に呼ばれる関数
+    /// </summary>
+    public override void OnJoinedRoom()
+    {
+        CloseMenuUi();
+        RoomPanel.SetActive(true);
+
+        // 現在参加しているルームの名前の取得
+        roomName.text = PhotonNetwork.CurrentRoom.Name;
+
+        // ルームにいるプレイヤー情報を取得
+        GetAllPlayer();
+    }
+
+    /// <summary>
+    /// ルーム退出関数
+    /// </summary>
+    public void LeavRoom()
+    {
+        // ルームから退出
+        PhotonNetwork.LeaveRoom();
+
+        CloseMenuUi();
+
+        loadText.text = "LeaveRoom.....";
+        loadPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// ルーム退出時に呼ばれる関数
+    /// </summary>
+    public override void OnLeftRoom()
+    {
+        LobbyMenuDisplay();
+    }
+
+    /// <summary>
+    /// ルーム作成ができなかった時の呼ばれる関数
+    /// </summary>
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        CloseMenuUi();
+
+        errorText.text = "ルーム作成に失敗しました。"+message;
+
+        errorPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// ルーム一覧を開く関数
+    /// </summary>
+    public void FindRoom()
+    {
+        CloseMenuUi();
+        roomListPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// ルームリストに更新があった場合に呼ばれる関数
+    /// </summary>
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        //ルームボタンUIの初期化
+        RoomUiinitialization();
+        // 辞書に登録
+        UpdateRoomList(roomList);
+    }
+
+    /// <summary>
+    /// ルームを辞書に登録
+    /// </summary>
+    public void UpdateRoomList(List<RoomInfo> roomList)
+    {
+        //辞書にルームを登録
+        for (int i = 0; i < roomList.Count; i++)
+        {
+            RoomInfo info = roomList[i];
+
+            // RemovedFromListは満室の場合はtrueが帰る
+            if (info.RemovedFromList)
+            {
+                roomsList.Remove(info.Name);
+            }
+            else
+            {
+                // 辞書に登録
+                roomsList[info.Name] = info;
+            }
+        }
+        RoomListDisplay(roomsList);
+    }
+
+    /// <summary>
+    /// ルームボタンを表示
+    /// </summary>
+    public void  RoomListDisplay(Dictionary<string,RoomInfo> catchedRoomList)
+    {
+        foreach (var roomInfo in catchedRoomList)
+        {
+            // ボタン作成
+            Room newButton = Instantiate(originalRoomButton);
+
+            // 生成したボタンにルーム情報設定
+            newButton.RegisterRoomDetails(roomInfo.Value);
+
+            // 親の設定
+            newButton.transform.SetParent(roomButtonContent.transform);
+
+            allRomButtons.Add(newButton);
+        }
+    }
+
+    public void RoomUiinitialization()
+    {
+        // ルームUI分ループが回る
+        foreach  (Room rm in allRomButtons)
+        {
+            Destroy(rm.gameObject);
+        }
+
+        // リストの初期化
+        allRomButtons.Clear();
+    }
+
+    /// <summary>
+    /// ルームにはいる関数
+    /// </summary>
+    public void JoinRoom(RoomInfo roomInfo)
+    {
+        // ルームに参加
+        PhotonNetwork.JoinRoom(roomInfo.Name);
+
+        // Ui
+        CloseMenuUi();
+
+        //
+        loadText.text = "ルームに参加中";
+        loadPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// ルームにいるプレイヤーの取得
+    /// </summary>
+    public void GetAllPlayer()
+    {
+        // 名前UI初期化
+        InitializePlayerList();
+
+        PlayerDisplay();
+    }
+
+    public void InitializePlayerList()
+    {
+        foreach(var rm in allPlayerNames)
+        {
+            Destroy(rm.gameObject);
+        }
+        allPlayerNames.Clear();
+    }
+
+   
+    public void PlayerDisplay()
+    {
+        foreach(var players in PhotonNetwork.PlayerList)
+        {
+            // Ui生成
+            PlayerTextGeneration(players);
+        }
+    }
+
+    public void PlayerTextGeneration(Player players)
+    {
+        // UI生成
+        Text newPlayerText = Instantiate(playerNameText);
+
+        newPlayerText.text = players.NickName;
+
+        //親の設定
+        newPlayerText.transform.SetParent(playerNameContent.transform);
+
+        // リストに登録
+        allPlayerNames.Add(newPlayerText);
     }
 }
