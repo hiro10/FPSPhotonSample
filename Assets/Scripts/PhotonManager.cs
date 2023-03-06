@@ -61,6 +61,18 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public GameObject playerNameContent;
 
+    // 名前入力パネル
+    [SerializeField] private GameObject nameInputPanel;
+
+    // 名前入力表示テキスト
+    [SerializeField] private TextMeshProUGUI placeholdText;
+
+    // 入力フィールド
+    [SerializeField] private TMP_InputField  nameInput;
+
+　　//
+    private bool setName; 
+
     /// <summary>
     /// 開始処理
     /// </summary>
@@ -103,6 +115,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         RoomPanel.SetActive(false);
         errorPanel.SetActive(false);
         roomListPanel.SetActive(false);
+        nameInputPanel.SetActive(false);
     }
 
     /// <summary>
@@ -138,6 +151,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         //仮処理
         PhotonNetwork.NickName = Random.Range(0, 10000).ToString();
+
+        ConfirmationName();
     
     }
 
@@ -357,5 +372,57 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         // リストに登録
         allPlayerNames.Add(newPlayerText);
+    }
+
+    /// <summary>
+    /// 名前が入力済みか確認してUI更新
+    /// </summary>
+    private void ConfirmationName()
+    {
+        // 名前が設定されていない
+        if(!setName)
+        {
+            CloseMenuUi();
+            nameInputPanel.SetActive(true);
+
+            if(PlayerPrefs.HasKey("playerName"))
+            {
+                placeholdText.text = PlayerPrefs.GetString("playerName");
+                nameInput.text = PlayerPrefs.GetString("playerName");
+            }
+        }
+        else
+        {
+            PhotonNetwork.NickName = PlayerPrefs.GetString("playerName");
+        }
+    }
+
+    /// <summary>
+    /// 名前登録関数
+    /// </summary>
+    public void SetName()
+    {
+        // 入力フィールドに文字があるか
+        if(!string.IsNullOrEmpty(nameInput.text))
+        {
+            PhotonNetwork.NickName = nameInput.text;
+
+            // 保存
+            PlayerPrefs.SetString("playerName",nameInput.text);
+
+            LobbyMenuDisplay();
+
+            setName = true;
+        }
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        PlayerTextGeneration(newPlayer);
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        GetAllPlayer();
     }
 }
