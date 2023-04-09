@@ -71,7 +71,13 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_InputField  nameInput;
 
 　　//
-    private bool setName; 
+    private bool setName;
+
+    // ゲーム開始ボタン格納用
+    public GameObject startButton;
+
+    // 遷移シーン名
+    [SerializeField] private string levelToPlay;
 
     /// <summary>
     /// 開始処理
@@ -136,7 +142,10 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinLobby();
 
         // テキストの更新
-        loadText.text = "Join In Lobby...";
+        loadText.text = "ロビーに参加中...";
+
+        // masterと同じシーンをロード
+        PhotonNetwork.AutomaticallySyncScene = true;
     }
 
     /// <summary>
@@ -202,6 +211,9 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         // ルームにいるプレイヤー情報を取得
         GetAllPlayer();
+
+        // マスター化の判定
+        CheckRoomMaster();
     }
 
     /// <summary>
@@ -424,5 +436,42 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         GetAllPlayer();
+    }
+
+    /// <summary>
+    /// マスターか判定しボタンを表示
+    /// </summary>
+    private void CheckRoomMaster()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // ボタンの表示
+            startButton.SetActive(true);
+        }
+        else
+        {
+            startButton.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// マスターが切り替わったときに呼ばれる
+    /// </summary>
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        //ルームからマスターが抜けたら切り替わる
+        if (PhotonNetwork.IsMasterClient)
+        {
+            startButton.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// 遷移関数
+    /// </summary>
+    public void PlayGame()
+    {
+        // ルームにステージを読み込む
+        PhotonNetwork.LoadLevel(levelToPlay);
     }
 }

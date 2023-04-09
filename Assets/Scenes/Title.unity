@@ -1068,8 +1068,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -910, y: -171}
-  m_SizeDelta: {x: 0, y: 122.44922}
+  m_AnchoredPosition: {x: -0.00012207031, y: -245.2612}
+  m_SizeDelta: {x: -0.0063, y: 245.2612}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &632738698
 MonoBehaviour:
@@ -1094,7 +1094,7 @@ MonoBehaviour:
   m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c3c134149c95b12458bc8142857108f7, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 420212669669150836, guid: c3c134149c95b12458bc8142857108f7, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1125,8 +1125,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 4
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -1154,10 +1154,10 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 1741.0865, y: 0, z: 0, w: 0}
+  m_margin: {x: -4.986328, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &632738699
@@ -2453,6 +2453,8 @@ MonoBehaviour:
   nameInputPanel: {fileID: 2134023990}
   placeholdText: {fileID: 1803132657}
   nameInput: {fileID: 1178214697}
+  startButton: {fileID: 6527951383711084532}
+  levelToPlay: Main
 --- !u!1 &1178214695
 GameObject:
   m_ObjectHideFlags: 0
@@ -5850,7 +5852,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3602921803941061929}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1175256086}
+        m_TargetAssemblyTypeName: PhotonManager, Assembly-CSharp
+        m_MethodName: PlayGame
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7230293979892211370
 GameObject:
   m_ObjectHideFlags: 0

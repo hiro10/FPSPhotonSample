@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     // カメラの親オブジェクト
     public Transform viewPoint;
@@ -95,8 +96,6 @@ public class PlayerController : MonoBehaviour
 
         UpdateCurSurLock();
 
-        // ランダムな位置でスポーン
-        transform.position = spownManager.GetSpownPoint().position;
     }
 
     /// <summary>
@@ -104,6 +103,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        // このオブジェクトの管理者が自分だたらtrueが帰る
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+
         //視点移動処理
         PlayerRotate();
 
@@ -136,6 +141,12 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // このオブジェクトの管理者が自分だたらtrueが帰る
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         // テキストの更新関数の呼び出し
         uiManager.SettingBulletsText(ammoCLip[selectedGun], ammunition[selectedGun]);
     }
@@ -169,6 +180,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void LateUpdate()
     {
+        // このオブジェクトの管理者が自分だたらtrueが帰る
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
         cam.transform.position = viewPoint.position;
 
         // 回転の反映

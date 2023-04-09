@@ -1,9 +1,19 @@
 using UnityEngine;
+using Photon.Pun;
 
 public class SpownManager : MonoBehaviour
 {
     // スポーンポイント格納配列
     public Transform[] spownPoints;
+
+    // 生成するプレイヤーオブジェクト
+    [SerializeField] private GameObject playerPrefab;
+
+    // 生成したプレイヤーオブジェクト
+    private GameObject player;
+
+    // スポーンまでのインターバル
+    public float respownInterval = 5f;
 
     /// <summary>
     /// 開始処理
@@ -14,6 +24,12 @@ public class SpownManager : MonoBehaviour
         {
             position.gameObject.SetActive(false);
         }
+
+        // 生成関数呼び出し
+        if(PhotonNetwork.IsConnected)
+        {
+            SpownPlayer();
+        }
     }
 
     /// <summary>
@@ -22,5 +38,17 @@ public class SpownManager : MonoBehaviour
     public Transform GetSpownPoint()
     {
         return spownPoints[Random.Range(0, spownPoints.Length)];
+    }
+
+    /// <summary>
+    /// プレイヤーを生成する
+    /// </summary>
+    private void SpownPlayer()
+    {
+        // ランダムなスポーン位置
+        Transform spownPoint = GetSpownPoint();
+
+        // ネットワークオブジェクトの生成
+        player = PhotonNetwork.Instantiate(playerPrefab.name, spownPoint.position, spownPoint.rotation);
     }
 }
